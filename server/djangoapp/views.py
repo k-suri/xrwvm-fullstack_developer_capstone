@@ -1,10 +1,5 @@
-from django.shortcuts import render
-#from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import logout
-from django.contrib import messages
-from datetime import datetime
 from .models import CarMake, CarModel
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate
@@ -71,11 +66,13 @@ def registration(request):
     try:
         User.objects.get(username=username)
         user_exist = True
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         logger.debug("{} is new user".format(username))
     if not user_exist:
         user = User.objects.create_user(
-            username=username, first_name=firstname, last_name=lastname, password=password, email=email)
+            username=username, first_name=firstname, last_name=lastname,
+            password=password, email=email)
         login(request, user)
         data = {"userName": username, "status": "Authenticated"}
         return JsonResponse(data)
@@ -86,7 +83,8 @@ def registration(request):
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
-# Update the `get_dealerships` render list of dealerships all by default, particular state if state is passed
+# Update the `get_dealerships` render list of dealerships all by default,
+# particular state if state is passed
 def get_dealerships(request, state="All"):
     if (state == "All"):
         endpoint = "/fetchDealers"
@@ -130,8 +128,10 @@ def add_review(request):
         data = json.loads(request.body)
         try:
             response = post_review(data)
+            print(response)
             return JsonResponse({"status": 200})
-        except:
-            return JsonResponse({"status": 401, "message": "Error in posting review"})
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({"status": 401, "message": "Error"})
     else:
         return JsonResponse({"status": 403, "message": "Unauthorized"})
